@@ -1,0 +1,55 @@
+<% c++ #include "contents/Images.h" %>
+<% skin %>
+<% view images_normalize_avatar uses tatoimage::contents::images::NormalizeAvatar extends master %>
+<% template title() %><% gt "TODO TITLE" %><% end template %>
+
+
+/**
+ *
+ * @brief Display a form's widget as an HTML table's row
+ *
+ * @since 22 April 2013
+ */
+<% template widget_row(cppcms::widgets::base_widget & widget) %>
+<% include widget_row_text(widget,"") %>
+<% end template %>
+
+
+<% template widget_row_text(cppcms::widgets::base_widget & widget, std::string const& preinputText ) %>
+<tr>
+    <td class="labels" >
+        <label for="<%= widget.name() %>">
+            <%= widget.message() %>
+        </label>
+    </td>
+    <td>
+        <%= preinputText | raw %>
+        <% form input widget %>
+    </td>
+</tr>
+<% end template %>
+
+
+
+<% template body() %> 
+    <h2><% gt "Upload an image" %></h2>
+    <form
+        method="POST"
+        action="/images/normalize-avatar_treat"
+        id="upload_image_form"
+        enctype="multipart/form-data"
+    >
+        <table class='input'>
+            <% include widget_row(normalizeAvatarForm.image) %>
+        </table>
+        <div class="submit">
+            <% form input normalizeAvatarForm.submit %>
+        </div>
+    </form>
+
+<% end template %>
+
+
+
+<% end view %>
+<% end skin %>

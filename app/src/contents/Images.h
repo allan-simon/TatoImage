@@ -15,7 +15,7 @@
 
 #include "cppcms_skel/contents/content.h"
 
-#include "contents/forms/normalize_avatar.h"
+#include "contents/forms/upload_avatar.h"
 //%%%NEXT_CONTENT_FORM_INCLUDE_MARKER%%%
 
 namespace tatoimage {
@@ -31,31 +31,14 @@ struct Images : public ::contents::BaseContent {
 };
 
 /**
- * @struct TatoebaUploadAvatar
+ * @struct UploadAvatar
  * @since  06 January 2014
- * @brief 
  */
-struct TatoebaUploadAvatar : public Images {
+struct UploadAvatar : public Images {
 
-    TatoebaUploadAvatar() {
+    forms::images::UploadAvatar uploadAvatarForm;
+    UploadAvatar() {
 
-    }
-
-};
-
-/**
- * @struct NormalizeAvatar
- * @since  11 January 2014
- * @brief 
- */
-struct NormalizeAvatar : public Images {
-
-    forms::images::NormalizeAvatar normalizeAvatarForm;
-
-    /**
-     * @brief Constructor
-     */
-    NormalizeAvatar() {
     }
 
 };

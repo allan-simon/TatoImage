@@ -54,19 +54,19 @@ class Images : public ::controllers::webs::Controller {
          * @brief @TODO
          * @since 06 January 2014
          */
-        void tatoeba_upload_avatar();
+        void upload_avatar();
+
+        /**
+         * @brief @TODO
+         * @since 15 January 2014
+         */
+        void upload_avatar_treat();
 
         /**
          * @brief @TODO add a description
          * @since 11 January 2014
          */
         void normalize_avatar();
-
-        /**
-         * @brief @TODO add a description
-         * @since 11 January 2014
-         */
-        void normalize_avatar_treat();
 
 // %%%NEXT_ACTION_MARKER%%% , do not delete
 

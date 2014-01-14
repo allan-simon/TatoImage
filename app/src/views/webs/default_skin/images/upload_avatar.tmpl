@@ -1,6 +1,6 @@
 <% c++ #include "contents/Images.h" %>
 <% skin %>
-<% view images_normalize_avatar uses tatoimage::contents::images::NormalizeAvatar extends master %>
+<% view images_upload_avatar uses tatoimage::contents::images::UploadAvatar extends master %>
 <% template title() %><% gt "TODO TITLE" %><% end template %>
 
 
@@ -35,21 +35,20 @@
     <h2><% gt "Upload an image" %></h2>
     <form
         method="POST"
-        action="/images/normalize-avatar_treat"
+        action="/images/upload-avatar_treat"
         id="upload_image_form"
         enctype="multipart/form-data"
     >
         <table class='input'>
-            <% include widget_row(normalizeAvatarForm.image) %>
+            <% include widget_row(uploadAvatarForm.image) %>
+            <% include widget_row(uploadAvatarForm.filename) %>
         </table>
         <div class="submit">
-            <% form input normalizeAvatarForm.submit %>
+            <% form input uploadAvatarForm.submit %>
         </div>
     </form>
 
 <% end template %>
-
-
 
 <% end view %>
 <% end skin %>

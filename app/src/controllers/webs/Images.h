@@ -68,6 +68,16 @@ class Images : public ::controllers::webs::Controller {
          */
         void normalize_avatar();
 
+        /**
+         * in which folder to store the images
+         */
+        std::string storageFolder;
+
+        /**
+         * path where original images are stored on disk
+         */
+        std::string originalFolder;
+
 // %%%NEXT_ACTION_MARKER%%% , do not delete
 
 };

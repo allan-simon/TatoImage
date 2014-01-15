@@ -30,6 +30,8 @@ namespace webs {
 Images::Images(cppcms::service& serv) :
     ::controllers::webs::Controller(serv)
 {
+    storageFolder = "../data/images/";
+    originalFolder = storageFolder + "original/";
 
     dispatcher().assign("/upload-avatar", &Images::upload_avatar, this);
     dispatcher().assign("/upload-avatar_treat", &Images::upload_avatar_treat, this);
@@ -76,8 +78,19 @@ void Images::upload_avatar_treat() {
     }
 
     std::istream& data = form.image.value()->data();
+
+    //TODO should be possible to preallocate memory
     std::string imageBuffer((std::istreambuf_iterator<char>(data)), std::istreambuf_iterator<char>());
+    //std::string imageBuffer(
+    //    std::istreambuf_iterator<char>(data),
+    //    std::istreambuf_iterator<char>()
+    //);
     std::string imageName = form.filename.value();
+
+    // we save to disk for persistence
+    form.image.value()->save_to(
+        originalFolder + imageName
+    );
 
     cache().store_frame(
         imageName,
@@ -93,6 +106,7 @@ void Images::normalize_avatar() {
 
     std::string filename = "";
     if (request().request_method() == "GET") {
+
         cppcms::http::request::form_type getData = request().get();
         cppcms::http::request::form_type::const_iterator it;
         
@@ -104,13 +118,33 @@ void Images::normalize_avatar() {
         return;
     }
 
-    // if we don't have this file data we 404
-    // TODO: we should test if we have it on disk
+    // check if we have the file in cache
     std::string imageBuffer;
     if (!cache().fetch_frame(filename, imageBuffer)) {
-        response().status(404);
-        response().out() << "404";
-        return;
+        // if not in cache we test if we have the file on
+        // disk
+        std::ifstream file((originalFolder + filename).c_str());
+        if(!file.good()) {
+            response().status(404);
+            response().out() << "404";
+            return;
+        }
+
+
+        // we read the file and put original data in cache
+        //TODO should be possible to preallocate memory
+        imageBuffer.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        // TODO why this does not compile ?
+        //imageBuffer.assign(
+        //    (std::istreambuf_iterator<char>(file)),
+        //    std::istreambuf_iterator<char>()
+        //);
+        file.close();
+
+        cache().store_frame(
+            filename,
+            imageBuffer
+        );
     }
 
     // we first load our image from its string representation

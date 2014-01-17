@@ -10,6 +10,7 @@
  * @link     https://github.com/allan-simon/tatoimage@
  *
  */
+#include <curl/curl.h>
 
 #include <cppcms/session_interface.h>
 #include <cppcms/http_file.h>
@@ -32,6 +33,8 @@ Images::Images(cppcms::service& serv) :
 {
     storageFolder = "../data/images/";
     originalFolder = storageFolder + "original/";
+
+    dispatcher().assign("/resize", &Images::resize, this);
 
     dispatcher().assign("/upload-avatar", &Images::upload_avatar, this);
     dispatcher().assign("/upload-avatar_treat", &Images::upload_avatar_treat, this);
@@ -96,6 +99,51 @@ void Images::upload_avatar_treat() {
         imageName,
         imageBuffer
     );
+}
+
+/**
+ * callback for curl writing data
+ */
+static size_t write_callback(
+    void* contents,
+    size_t size,
+    size_t nmemb,
+    void* userData
+) {
+    ((std::string*)userData)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+};
+
+/**
+ *
+ */
+void Images::resize() {
+
+    std::string filename = "";
+    if (request().request_method() == "GET") {
+
+        cppcms::http::request::form_type getData = request().get();
+        cppcms::http::request::form_type::const_iterator it;
+
+        GET_FIELD(filename, "filename");
+    }
+
+    std::string readBuffer;
+    char* type = NULL;
+
+    CURL* handle = curl_easy_init();
+    curl_easy_setopt(handle, CURLOPT_URL, filename.c_str());
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &readBuffer);
+
+
+    CURLcode result = curl_easy_perform(handle);
+    curl_easy_getinfo(handle, CURLINFO_CONTENT_TYPE, &type);
+
+    response().content_type(type);
+    response().out() << readBuffer;
+
+    curl_easy_cleanup(handle);
 }
 
 

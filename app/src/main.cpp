@@ -10,6 +10,7 @@
  *
  */
 
+#include <curl/curl.h>
 #include <iostream>
 
 #include <cppcms/service.h>
@@ -29,6 +30,8 @@ using namespace cppcms;
 int main(int argc,char ** argv)
 {
     //TODO send notice message to logs instead of cout
+
+    curl_global_init(CURL_GLOBAL_ALL);
 
     Magick::InitializeMagick(*argv);
     service app(argc, argv);
@@ -70,4 +73,5 @@ int main(int argc,char ** argv)
     /*time to destroy all the singletons*/
     //SearchEngine::kill();
     Config::kill();
+    curl_global_cleanup();
 }

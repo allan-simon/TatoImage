@@ -28,6 +28,7 @@ find_library(CPPDB cppdb)
 find_library(SQLITE3 sqlite3)
 
 find_package(ImageMagick COMPONENTS Magick++)
+find_package(CURL)
 
 
 
@@ -38,6 +39,7 @@ find_package(ImageMagick COMPONENTS Magick++)
 include_directories(
     src
     ${ImageMagick_INCLUDE_DIRS}
+    ${CURL_INCLUDE_DIRS}
 )
 
 
@@ -108,6 +110,7 @@ set(
     ${BOOSTER}
     ${SQLITE3}
     ${ImageMagick_LIBRARIES}
+    ${CURL_LIBRARIES}
     cppcmsskel
     #if you need to link with an other lib add it here
 )

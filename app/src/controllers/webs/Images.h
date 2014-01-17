@@ -57,6 +57,11 @@ class Images : public ::controllers::webs::Controller {
         void upload_avatar();
 
         /**
+         * @since 17 January 2014
+         */
+        void resize();
+
+        /**
          * @brief @TODO
          * @since 15 January 2014
          */

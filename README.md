@@ -70,26 +70,28 @@ and then in your browser you can do quick test by going on
       dispatcher().assign("/wonderful-manipulation", &Images::wonderful_manipulation, this)
 
   1. put some boiler plate code in the implementation of your method
+ 
 
-
-    /**
-     *
-     */
-    void Images::wonderful_manipulation() {
-
-        std::string imageBuffer;
-        if (!get_image_and_params(imageBuffer)) {
-            return;
+   ```c++   
+        /**
+         *
+         */
+        void Images::wonderful_manipulation() {
+    
+            std::string imageBuffer;
+            if (!get_image_and_params(imageBuffer)) {
+                return;
+            }
+            load_buffer_in_image(imageBuffer);
+    
+            //TODO put your code here
+    
+            response().content_type(
+                magick_format_to_mime(workingImage.format())
+            );
+            output_image(workingImage);
         }
-        load_buffer_in_image(imageBuffer);
-
-        //TODO put your code here
-
-        response().content_type(
-            magick_format_to_mime(workingImage.format())
-        );
-        output_image(workingImage);
-    }
+    ```
   
   1. put your own code where TODO comment is put, you can have access to your image using workingImage after its simply normal ImageMagick++ library call, no more, no less
 

@@ -149,16 +149,27 @@ void Images::resize() {
         GET_FIELD(filename, "filename");
     }
 
-    std::string imageBuffer;
 
+    // we do a curl request to get the file
+    // and we write the result in a buffer
+    std::string imageBuffer;
     CURL* handle = curl_easy_init();
     curl_easy_setopt(handle, CURLOPT_URL, filename.c_str());
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, &imageBuffer);
+    // http status code >= 400 will be considered as error
+    curl_easy_setopt(handle, CURLOPT_FAILONERROR, true);
 
-
-    //TODO handle wrong URL etc.
     CURLcode result = curl_easy_perform(handle);
+    curl_easy_cleanup(handle);
+
+    //TODO for the moment whatever the error we
+    // always return a 404, would be better to have something more precise
+    if (result != CURLE_OK) {
+        response().status(404);
+        response().out() << "404";
+        return;
+    }
 
     Magick::Blob initialBlob(imageBuffer.data(), imageBuffer.length());
     Magick::Image workingImage(initialBlob);
@@ -168,7 +179,6 @@ void Images::resize() {
     );
     response().out() << imageBuffer;
 
-    curl_easy_cleanup(handle);
 }
 
 

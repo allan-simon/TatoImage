@@ -15,7 +15,6 @@
 #include <cppcms/session_interface.h>
 #include <cppcms/http_file.h>
 
-#include <ImageMagick/Magick++.h>
 #include "Images.h"
 
 
@@ -166,16 +165,40 @@ void Images::resize() {
     if (!get_image_and_params(imageBuffer)) {
         return;
     }
-    //TODO finish to implement this function
 
-    Magick::Blob initialBlob(imageBuffer.data(), imageBuffer.length());
-    Magick::Image workingImage(initialBlob);
+    load_buffer_in_image(imageBuffer);
+
+    size_t size = std::stoul(sizeStr);
+    workingImage.resize(Magick::Geometry(size, size));
 
     response().content_type(
         magick_format_to_mime(workingImage.format())
     );
-    response().out() << imageBuffer;
 
+
+    output_image(workingImage);
+}
+
+/**
+ *
+ */
+void Images::load_buffer_in_image(const std::string &imageBuffer) {
+    Magick::Blob initialBlob(imageBuffer.data(), imageBuffer.length());
+    workingImage.read(initialBlob);
+}
+
+/**
+ *
+ */
+void Images::output_image(Magick::Image &outputImage) {
+    Magick::Blob initialBlob;
+    outputImage.write(&initialBlob);
+    std::string finalImage(
+        static_cast<const char*>(initialBlob.data()),
+        initialBlob.length()
+    );
+
+    response().out() << finalImage;
 }
 
 /**
@@ -269,12 +292,10 @@ void Images::normalize_avatar() {
     if (!get_image_and_params(imageBuffer)) {
         return;
     }
+
+    load_buffer_in_image(imageBuffer);
     response().content_type("image/png");
 
-    // we first load our image from its string representation
-    // to an Magick++ Image
-    Magick::Blob initialBlob(imageBuffer.data(), imageBuffer.length());
-    Magick::Image workingImage(initialBlob);
 
     //we prepare a  squarre transparent PNG image
     size_t size = std::stoul(sizeStr);
@@ -289,20 +310,14 @@ void Images::normalize_avatar() {
     );
     blankImage.magick("PNG");
 
-    //we resize the actual image to 50 for largest dimension
-    //while keeping ratio
+    //we resize the actual image to have largest dimension
+    //at the size given in parameters while keeping ratio
     workingImage.resize(Magick::Geometry(size, size));
     //and we paste it at top left of the "transparent" image
     blankImage.composite(workingImage, 0, 0, Magick::OverCompositeOp);
-    blankImage.write(&initialBlob);
 
-    std::string finalImage(
-        static_cast<const char*>(initialBlob.data()),
-        initialBlob.length()
-    );
 
-    response().out() << finalImage;
-
+    output_image(blankImage);
     cache().store_page(cachedNormalized);
 }
 

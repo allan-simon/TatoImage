@@ -14,6 +14,8 @@
 #ifndef TATO_IMAGECONTROLLERS_WEBS_IMAGES_H
 #define TATO_IMAGECONTROLLERS_WEBS_IMAGES_H
 
+#include <ImageMagick/Magick++.h>
+
 #include <cppcms_skel/controllers/webs/Controller.h>
 
 
@@ -49,6 +51,8 @@ class Images : public ::controllers::webs::Controller {
 
     private:
         // %%%NEXT_VAR_MODEL_CTRL_MARKER%%%
+        //TODO should be possible to put imageBuffer as an attribute ?
+        // will it permit to not have to allocate memory everytime ?
 
         /**
          * load an image from various location
@@ -67,11 +71,26 @@ class Images : public ::controllers::webs::Controller {
         );
 
         /**
+         * load buffer in a Magick++ Image
+         */
+        void load_buffer_in_image(
+            const std::string &imageBuffer
+        );
+
+        /**
+         *
+         */
+        void output_image(
+            Magick::Image &ouputImage
+        );
+
+        /**
          * try to load an image from cache or web if available
          */
         bool load_image_from_web(
             std::string &imageBuffer
         );
+
 
         /**
          * @brief TODO
@@ -118,10 +137,16 @@ class Images : public ::controllers::webs::Controller {
         std::string sizeStr;
 
         /**
-         *
+         * if we load from an image on the server
+         * or from a web image ("0" or "1")
          */
         std::string online;
 
+        /**
+         * image in which most of the image manipulation
+         * will be done
+         */
+        Magick::Image workingImage;
 // %%%NEXT_ACTION_MARKER%%% , do not delete
 
 };

@@ -8,16 +8,22 @@ The goal is to provide a set of easy to use API call in order to remove complex 
 If necessary everything can be done in memory without any mandatory disk write (for the moment a disk write is made for backup data persistence purpose)
 
 
-##Using it
+##Using it 
 
-for the moment it provides only two API call
+you can upload images directly to the server using its ugly upload page: `/images/upload-avatar`
+
+Note: the filename field is what the API will wait if you want to manipulate that file
+Note2: file uploaded that way get saved on disk, so that they can be retrieved if the server is shutdown and restarted
+
+
+for the moment it provides only two API call 
 
   * /images/resize which accept 3 mandatory parameters with GET, image type is preserverd:
     * `filename` can be simple filename or a URL (if URL you must set up  `online` to 1)
     * `size` final size of the biggest dimension of the image to manipulate, and it will keep ratio
     * `online` if we're working on an image uploaded on the server or an image on other server,  can be `0` (local) or `1` (URL)
 
-    example:
+    example: 
 
          /images/resize?filename=http://upload.wikimedia.org/wikipedia/commons/e/e0/JPEG_example_JPG_RIP_050.jpg&size=500&online=1
 

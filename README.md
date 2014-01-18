@@ -61,3 +61,42 @@ and then in your browser you can do quick test by going on
 ##Hacking the code
 
   * The interesting part (image manipulation) is made  `app/src/controllers/webs/Images.cpp`
+
+###Adding a new API call
+
+  1. add a new method in `app/src/controllers/webs/Images.h`, for example `void wonderful_manipulation();`
+  1. in constructor add a line  (the string part is totally up to you)
+
+      dispatcher().assign("/wonderful-manipulation", &Images::wonderful_manipulation, this)
+
+  1. put some boiler plate code in the implementation of your method
+
+
+    /**
+     *
+     */
+    void Images::wonderful_manipulation() {
+
+        std::string imageBuffer;
+        if (!get_image_and_params(imageBuffer)) {
+            return;
+        }
+        load_buffer_in_image(imageBuffer);
+
+        //TODO put your code here
+
+        response().content_type(
+            magick_format_to_mime(workingImage.format())
+        );
+        output_image(workingImage);
+    }
+  
+  1. put your own code where TODO comment is put, you can have access to your image using workingImage after its simply normal ImageMagick++ library call, no more, no less
+
+
+###Going deeper
+
+if you want to do more complex things take a look around, there's already utility function yo get the mime type, code to save/load from disk/cache/internet
+
+
+

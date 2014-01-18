@@ -138,21 +138,60 @@ static size_t write_callback(
 /**
  *
  */
-void Images::resize() {
-
-    std::string filename = "";
-    if (request().request_method() == "GET") {
-
-        cppcms::http::request::form_type getData = request().get();
-        cppcms::http::request::form_type::const_iterator it;
-
-        GET_FIELD(filename, "filename");
+bool Images::get_image_and_params(std::string &imageBuffer) {
+    if (request().request_method() != "GET") {
+        return false;
     }
 
+    cppcms::http::request::form_type getData = request().get();
+    cppcms::http::request::form_type::const_iterator it;
+
+    GET_FIELD(filename, "filename");
+    GET_FIELD(online, "online");
+    GET_FIELD(sizeStr, "size");
+
+    if (online == "1") {
+        return load_image_from_web(imageBuffer);
+    }
+
+    return load_image_buffer_from_cache(imageBuffer);
+}
+
+/**
+ *
+ */
+void Images::resize() {
+
+    std::string imageBuffer;
+    if (!get_image_and_params(imageBuffer)) {
+        return;
+    }
+    //TODO finish to implement this function
+
+    Magick::Blob initialBlob(imageBuffer.data(), imageBuffer.length());
+    Magick::Image workingImage(initialBlob);
+
+    response().content_type(
+        magick_format_to_mime(workingImage.format())
+    );
+    response().out() << imageBuffer;
+
+}
+
+/**
+ *
+ */
+bool Images::load_image_from_web(
+    std::string & imageBuffer
+) {
+    std::string urlEncodeFilename = cppcms::util::urlencode(filename);
+
+    if (cache().fetch_frame(urlEncodeFilename, imageBuffer)) {
+        return true;
+    }
 
     // we do a curl request to get the file
     // and we write the result in a buffer
-    std::string imageBuffer;
     CURL* handle = curl_easy_init();
     curl_easy_setopt(handle, CURLOPT_URL, filename.c_str());
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
@@ -168,76 +207,79 @@ void Images::resize() {
     if (result != CURLE_OK) {
         response().status(404);
         response().out() << "404";
-        return;
+        return false;
     }
 
-    Magick::Blob initialBlob(imageBuffer.data(), imageBuffer.length());
-    Magick::Image workingImage(initialBlob);
-
-    response().content_type(
-        magick_format_to_mime(workingImage.format())
+    cache().store_frame(
+        urlEncodeFilename,
+        imageBuffer
     );
-    response().out() << imageBuffer;
 
+    return true;
 }
 
+/**
+ *
+ */
+bool Images::load_image_buffer_from_cache(
+    std::string & imageBuffer
+) {
+    if (cache().fetch_frame(filename, imageBuffer)) {
+        return true;
+    }
+
+    // if not in cache we test if we have the file on
+    // disk
+    std::ifstream file((originalFolder + filename).c_str());
+    if (!file.good()) {
+        response().status(404);
+        response().out() << "404";
+        return false;
+    }
+
+    // we read the file and put original data in cache
+    //TODO should be possible to preallocate memory
+    imageBuffer.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    // TODO why this does not compile ?
+    //imageBuffer.assign(
+    //    (std::istreambuf_iterator<char>(file)),
+    //    std::istreambuf_iterator<char>()
+    //);
+    file.close();
+
+    cache().store_frame(
+        filename,
+        imageBuffer
+    );
+    return true;
+}
 
 /**
  *
  */
 void Images::normalize_avatar() {
 
-    std::string filename = "";
-    if (request().request_method() == "GET") {
-
-        cppcms::http::request::form_type getData = request().get();
-        cppcms::http::request::form_type::const_iterator it;
-
-        GET_FIELD(filename, "filename");
-    }
-
-    response().content_type("image/png");
-    if (cache().fetch_page("normalize/" + filename)) {
+    std::string cachedNormalized = "normalize/" + sizeStr + filename;
+    if (cache().fetch_page(cachedNormalized)) {
+        response().content_type("image/png");
         return;
     }
 
-    // check if we have the file in cache
     std::string imageBuffer;
-    if (!cache().fetch_frame(filename, imageBuffer)) {
-        // if not in cache we test if we have the file on
-        // disk
-        std::ifstream file((originalFolder + filename).c_str());
-        if(!file.good()) {
-            response().status(404);
-            response().out() << "404";
-            return;
-        }
-
-
-        // we read the file and put original data in cache
-        //TODO should be possible to preallocate memory
-        imageBuffer.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        // TODO why this does not compile ?
-        //imageBuffer.assign(
-        //    (std::istreambuf_iterator<char>(file)),
-        //    std::istreambuf_iterator<char>()
-        //);
-        file.close();
-
-        cache().store_frame(
-            filename,
-            imageBuffer
-        );
+    if (!get_image_and_params(imageBuffer)) {
+        return;
     }
+    response().content_type("image/png");
 
     // we first load our image from its string representation
     // to an Magick++ Image
     Magick::Blob initialBlob(imageBuffer.data(), imageBuffer.length());
     Magick::Image workingImage(initialBlob);
 
-    //we prepare a transparent PNG image of 50*50 pixels
+    //we prepare a  squarre transparent PNG image
+    size_t size = std::stoul(sizeStr);
     Magick::Image blankImage(
-        Magick::Geometry(50, 50),
+        Magick::Geometry(size, size),
         Magick::Color(
             0,
             0,
@@ -249,7 +291,7 @@ void Images::normalize_avatar() {
 
     //we resize the actual image to 50 for largest dimension
     //while keeping ratio
-    workingImage.resize(Magick::Geometry(50,50));
+    workingImage.resize(Magick::Geometry(size, size));
     //and we paste it at top left of the "transparent" image
     blankImage.composite(workingImage, 0, 0, Magick::OverCompositeOp);
     blankImage.write(&initialBlob);
@@ -261,8 +303,7 @@ void Images::normalize_avatar() {
 
     response().out() << finalImage;
 
-    cache().store_page("normalize/" + filename);
-
+    cache().store_page(cachedNormalized);
 }
 
 // %%%NEXT_ACTION_MARKER%%% , do not delete

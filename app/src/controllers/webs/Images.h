@@ -51,7 +51,30 @@ class Images : public ::controllers::webs::Controller {
         // %%%NEXT_VAR_MODEL_CTRL_MARKER%%%
 
         /**
-         * @brief @TODO
+         * load an image from various location
+         * into a buffer, the location etc. will depends on GET parameters
+         * NOTE: in case of error, this function will write in the HTTP body
+         * also load other parameters given in GET
+         * @return boolean,  true if the image is loaded, false otherwise
+         */
+        bool get_image_and_params(std::string &imageBuffer);
+
+        /**
+         * try to load an image from cache or disk if available
+         */
+        bool load_image_buffer_from_cache(
+            std::string &imageBuffer
+        );
+
+        /**
+         * try to load an image from cache or web if available
+         */
+        bool load_image_from_web(
+            std::string &imageBuffer
+        );
+
+        /**
+         * @brief TODO
          * @since 06 January 2014
          */
         void upload_avatar();
@@ -62,13 +85,13 @@ class Images : public ::controllers::webs::Controller {
         void resize();
 
         /**
-         * @brief @TODO
+         * @brief TODO
          * @since 15 January 2014
          */
         void upload_avatar_treat();
 
         /**
-         * @brief @TODO add a description
+         * normalize avatar for tatoeba's usage
          * @since 11 January 2014
          */
         void normalize_avatar();
@@ -82,6 +105,22 @@ class Images : public ::controllers::webs::Controller {
          * path where original images are stored on disk
          */
         std::string originalFolder;
+
+        // TODO: we should specialize Image by type of transformation
+        /**
+         * name of the file to work on
+         */
+        std::string filename;
+
+        /**
+         * size of the output image
+         */
+        std::string sizeStr;
+
+        /**
+         *
+         */
+        std::string online;
 
 // %%%NEXT_ACTION_MARKER%%% , do not delete
 

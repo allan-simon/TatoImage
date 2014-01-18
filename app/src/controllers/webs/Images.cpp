@@ -115,6 +115,27 @@ static size_t write_callback(
 }
 
 /**
+ * Simple conversion between format string returned by imagemagick
+ * and mime type that can be used by the browser
+ */
+ static std::string magick_format_to_mime(const std::string &format) {
+
+    if (format == "Portable Network Graphics") {
+        return "image/png";
+    }
+
+    if (format == "Joint Photographic Experts Group JFIF format") {
+        return "image/jpg";
+    }
+
+    if (format == "CompuServe graphics interchange format") {
+        return "image/gif";
+    }
+
+    return "application/octet-stream";
+ }
+
+/**
  *
  */
 void Images::resize() {
@@ -128,20 +149,24 @@ void Images::resize() {
         GET_FIELD(filename, "filename");
     }
 
-    std::string readBuffer;
-    char* type = NULL;
+    std::string imageBuffer;
 
     CURL* handle = curl_easy_init();
     curl_easy_setopt(handle, CURLOPT_URL, filename.c_str());
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &readBuffer);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &imageBuffer);
 
 
+    //TODO handle wrong URL etc.
     CURLcode result = curl_easy_perform(handle);
-    curl_easy_getinfo(handle, CURLINFO_CONTENT_TYPE, &type);
 
-    response().content_type(type);
-    response().out() << readBuffer;
+    Magick::Blob initialBlob(imageBuffer.data(), imageBuffer.length());
+    Magick::Image workingImage(initialBlob);
+
+    response().content_type(
+        magick_format_to_mime(workingImage.format())
+    );
+    response().out() << imageBuffer;
 
     curl_easy_cleanup(handle);
 }

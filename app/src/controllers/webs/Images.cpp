@@ -5,7 +5,7 @@
  * See accompanying file COPYING.TXT file for licensing details.
  *
  * @category TatoImage
- * @author   Allan SIMON <allan.simon@supinfo.com> 
+ * @author   Allan SIMON <allan.simon@supinfo.com>
  * @package  Controllers
  * @link     https://github.com/allan-simon/tatoimage@
  *
@@ -112,7 +112,7 @@ static size_t write_callback(
 ) {
     ((std::string*)userData)->append((char*)contents, size * nmemb);
     return size * nmemb;
-};
+}
 
 /**
  *
@@ -157,7 +157,7 @@ void Images::normalize_avatar() {
 
         cppcms::http::request::form_type getData = request().get();
         cppcms::http::request::form_type::const_iterator it;
-        
+
         GET_FIELD(filename, "filename");
     }
 
